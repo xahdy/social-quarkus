@@ -1,4 +1,4 @@
-CREATE TABLE social-quarkus;
+CREATE DATABASE socialquarkus;
 
 CREATE TABLE USERS(
 	id bigserial not null primary key,
