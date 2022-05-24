@@ -3,27 +3,45 @@ package io.github.xahdy.socialquarkus.rest;
 import io.github.xahdy.socialquarkus.domain.model.User;
 import io.github.xahdy.socialquarkus.domain.repository.UserRepository;
 import io.github.xahdy.socialquarkus.rest.dto.CreateUserRequest;
+import io.github.xahdy.socialquarkus.rest.dto.ResponseError;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.util.Set;
 
 @Path("/users")
 public class UserResource {
 
+    //propriedades para usar os parametros passados no construtor
     private UserRepository repository;
+    private Validator validator;
 
+    //construtor
     @Inject
-    public UserResource(UserRepository repository){
+    public UserResource(UserRepository repository, Validator validator){
         this.repository = repository;
+        this.validator = validator;
     }
 
     @POST
     @Transactional
     //metodo createUser que é do tipo Response e recebe um CreateUserRequest como userRequest.
     public Response createUser(CreateUserRequest userRequest) {
+        //passamos o userRequest para ser validado pelo validator e gravamos o retorno dentro da variável violations
+        Set<ConstraintViolation<CreateUserRequest>> violations = validator.validate(userRequest);
+        if(!violations.isEmpty()){
+            //se a lista de violations não estiver vazia, chamamos o metodo createFromValidation do nosso ResponseError
+            //para saber exatamente qual violação ocorreu na hora da validação
+            ResponseError responseError = ResponseError.createFromValidation(violations);
+
+            return Response.status(400).entity(responseError).build();
+        }
+
         User user = new User();
         user.setAge(userRequest.getAge());
         user.setName(userRequest.getName());
