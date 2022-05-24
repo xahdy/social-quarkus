@@ -1,16 +1,24 @@
 package io.github.xahdy.socialquarkus.rest;
 
 import io.github.xahdy.socialquarkus.domain.model.User;
+import io.github.xahdy.socialquarkus.domain.repository.UserRepository;
 import io.github.xahdy.socialquarkus.rest.dto.CreateUserRequest;
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
 @Path("/users")
 public class UserResource {
+
+    private UserRepository repository;
+
+    @Inject
+    public UserResource(UserRepository repository){
+        this.repository = repository;
+    }
 
     @POST
     @Transactional
@@ -20,16 +28,16 @@ public class UserResource {
         user.setAge(userRequest.getAge());
         user.setName(userRequest.getName());
 
-        user.persist();
+        repository.persist(user);
         return Response.ok(user).build();
 
     }
 
     @GET
     public Response listAllUsers() {
-        //armazenamos o User.findAll() dentro de uma variável chama de query para podermos acessar depois
+        //armazenamos o repository.findAll() dentro de uma variável chama de query para podermos acessar depois
         //depois de escrever User.findAll() usar ctrl alt v para criar a variável mais rapido
-        PanacheQuery<PanacheEntityBase> query = User.findAll();
+        PanacheQuery<User> query = repository.findAll();
         return Response.ok(query.list()).build();
     }
 
@@ -38,9 +46,9 @@ public class UserResource {
     @Transactional
     public Response deleteUser(@PathParam("id") Long id) {
         //vamos passar o usuario encontrado pelo id para a variavel userSelected que é do tipo User
-        User userSelected = User.findById(id);
+        User userSelected = repository.findById(id);
         if (userSelected != null) {
-            userSelected.delete();
+            repository.delete(userSelected);
             return Response.ok().build();
         }
         return Response.status(Response.Status.NOT_FOUND).build();
@@ -51,7 +59,7 @@ public class UserResource {
     @Transactional
     public Response updateUser(@PathParam("id") Long id, CreateUserRequest userData) {
         //vamos passar o usuario encontrado pelo id para a variavel userSelected que é do tipo User
-        User userSelected = User.findById(id);
+        User userSelected = repository.findById(id);
         if (userSelected != null) {
             userSelected.setName(userData.getName());
             userSelected.setAge(userData.getAge());
