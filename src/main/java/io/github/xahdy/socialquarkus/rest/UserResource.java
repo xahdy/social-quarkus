@@ -39,7 +39,7 @@ public class UserResource {
             //para saber exatamente qual violação ocorreu na hora da validação
             ResponseError responseError = ResponseError.createFromValidation(violations);
 
-            return Response.status(400).entity(responseError).build();
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(responseError).build();
         }
 
         User user = new User();
@@ -47,7 +47,9 @@ public class UserResource {
         user.setName(userRequest.getName());
 
         repository.persist(user);
-        return Response.ok(user).build();
+        return Response.status(Response.Status.CREATED.getStatusCode())
+                .entity(user)
+                .build();
 
     }
 
@@ -67,7 +69,7 @@ public class UserResource {
         User userSelected = repository.findById(id);
         if (userSelected != null) {
             repository.delete(userSelected);
-            return Response.ok().build();
+            return Response.noContent().build();
         }
         return Response.status(Response.Status.NOT_FOUND).build();
     }
@@ -81,7 +83,7 @@ public class UserResource {
         if (userSelected != null) {
             userSelected.setName(userData.getName());
             userSelected.setAge(userData.getAge());
-            return Response.ok().build();
+            return Response.noContent().build();
         }
         return Response.status(Response.Status.NOT_FOUND).build();
     }
