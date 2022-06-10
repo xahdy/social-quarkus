@@ -1,11 +1,13 @@
 package io.github.xahdy.socialquarkus.rest;
 
 import io.github.xahdy.socialquarkus.rest.dto.CreateUserRequest;
+import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.*;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -13,10 +15,14 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UserResourceTest {
 
+    @TestHTTPResource("/users")
+    URL usersUrl;
     @Test
     @DisplayName("Deve criar um usuário com sucesso")
+    @Order(1)
     public void createUserTest() {
         //constrói um novo objeto DTO createUserRequest e guarda os dados em user
         var user = new CreateUserRequest();
@@ -34,7 +40,7 @@ class UserResourceTest {
                         //quando
                         .when()
                         //for enviado via post na url users
-                        .post("/users")
+                        .post(usersUrl)
                         //entao
                         .then()
                         //extrair a resposta
@@ -47,6 +53,7 @@ class UserResourceTest {
 
     @Test
     @DisplayName("Deve retornar erro quando json n for válido")
+    @Order(2)
     public void createUserValidationTest() {
         var user = new CreateUserRequest();
         user.setName(null);
@@ -62,7 +69,7 @@ class UserResourceTest {
                         //quando
                         .when()
                         //for enviado via post na url users
-                        .post("/users")
+                        .post(usersUrl)
                         //entao
                         .then()
                         //extrair a resposta
@@ -76,5 +83,18 @@ class UserResourceTest {
         List<Map<String, String>> errors = response.jsonPath().getList("errors");
         assertNotNull(errors.get(0).get("message"));
         assertNotNull(errors.get(1).get("message"));
+    }
+
+    @Test
+    @DisplayName("Deve listar todos os usuários")
+    @Order(3)
+    public void listAllUsersTest(){
+        given()
+                .contentType(ContentType.JSON)
+                .when()
+                .get(usersUrl)
+                .then()
+                .statusCode(200)
+                .body("size()", Matchers.is(1));
     }
 }
