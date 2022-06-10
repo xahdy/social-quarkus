@@ -1,13 +1,14 @@
 package io.github.xahdy.socialquarkus.rest;
 
 import io.github.xahdy.socialquarkus.rest.dto.CreateUserRequest;
-import io.quarkus.test.common.http.TestHTTPResource;
+import io.quarkus.test.common.http.TestHTTPEndpoint;
+
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.*;
 
-import java.net.URL;
+
 import java.util.List;
 import java.util.Map;
 
@@ -15,11 +16,11 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
+@TestHTTPEndpoint(UserResource.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UserResourceTest {
 
-    @TestHTTPResource("/users")
-    URL usersUrl;
+
     @Test
     @DisplayName("Deve criar um usuário com sucesso")
     @Order(1)
@@ -40,7 +41,7 @@ class UserResourceTest {
                         //quando
                         .when()
                         //for enviado via post na url users
-                        .post(usersUrl)
+                        .post()
                         //entao
                         .then()
                         //extrair a resposta
@@ -69,7 +70,7 @@ class UserResourceTest {
                         //quando
                         .when()
                         //for enviado via post na url users
-                        .post(usersUrl)
+                        .post()
                         //entao
                         .then()
                         //extrair a resposta
@@ -92,7 +93,7 @@ class UserResourceTest {
         given()
                 .contentType(ContentType.JSON)
                 .when()
-                .get(usersUrl)
+                .get()
                 .then()
                 .statusCode(200)
                 .body("size()", Matchers.is(1));
